@@ -1,0 +1,63 @@
+<Window x:Class="TerminalLink.DesktopWindow"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:local="clr-namespace:TerminalLink"
+ xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+ Title="TerminalLink Desktop" Width="1240" Height="840" MinWidth="840" MinHeight="570"
+ Background="#151719" Foreground="#E9EAED" FontFamily="Malgun Gothic, Segoe UI" FontSize="14"
+ WindowStartupLocation="CenterScreen" ResizeMode="CanResize" UseLayoutRounding="True" SnapsToDevicePixels="True">
+ <shell:WindowChrome.WindowChrome><shell:WindowChrome CaptionHeight="38" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="8" UseAeroCaptionButtons="False"/></shell:WindowChrome.WindowChrome>
+ <Window.Resources><ResourceDictionary><ResourceDictionary.MergedDictionaries><ResourceDictionary Source="Theme.xaml"/></ResourceDictionary.MergedDictionaries></ResourceDictionary></Window.Resources>
+ <Border x:Name="WindowFrame" Background="#151719" BorderBrush="#30363C" BorderThickness="1">
+ <Grid><Grid.RowDefinitions><RowDefinition Height="37"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+  <Border Background="#101214" BorderBrush="#252A2E" BorderThickness="0,0,0,1">
+   <DockPanel LastChildFill="True">
+    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+     <Button x:Name="MinimizeButton" Style="{StaticResource CaptionButton}" ToolTip="최소화" AutomationProperties.Name="최소화"><Path Data="M0,5 L10,5" Width="10" Height="10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1"/></Button>
+     <Button x:Name="MaximizeButton" Style="{StaticResource CaptionButton}" ToolTip="최대화" AutomationProperties.Name="최대화"><Path x:Name="MaximizeGlyph" Data="M0,0 L10,0 10,10 0,10 Z" Width="10" Height="10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1"/></Button>
+     <Button x:Name="CloseButton" Tag="close" Style="{StaticResource CaptionButton}" ToolTip="닫기 · Windows Terminal 다시 표시" AutomationProperties.Name="닫기"><Path Data="M0,0 L10,10 M10,0 L0,10" Width="10" Height="10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1"/></Button>
+    </StackPanel>
+    <StackPanel Orientation="Horizontal" Margin="16,0" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock Text="&gt;_&lt;" FontFamily="Consolas" FontSize="16" Foreground="#73D8CE" Margin="0,0,9,0"/><TextBlock Text="TerminalLink" FontSize="12" Foreground="#A8B2BC" VerticalAlignment="Center"/></StackPanel>
+   </DockPanel>
+  </Border>
+ <Grid Grid.Row="1" Background="#151719">
+  <Grid.ColumnDefinitions><ColumnDefinition Width="248"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+  <Border Background="#101214" BorderBrush="#2A2D30" BorderThickness="0,0,1,0">
+   <DockPanel Margin="16,22,16,16">
+    <StackPanel DockPanel.Dock="Top"><StackPanel Orientation="Horizontal"><TextBlock Text="&gt;_&lt;" FontSize="26" FontWeight="Bold" FontFamily="Consolas" Foreground="#73D8CE"/><TextBlock Text="TerminalLink" FontSize="19" FontWeight="SemiBold" Margin="11,2,0,0"/></StackPanel><TextBlock Text="DESKTOP · PREVIEW" FontSize="10" Foreground="#758087" Margin="1,7,0,20"/><Button x:Name="AddTabButton" Content="＋ 새 탭" Background="#253D3B" Foreground="#B9E5DF" Margin="0,0,0,16" AutomationProperties.Name="새 터미널 탭 추가"/><DockPanel Margin="5,0,0,12"><TextBlock Text="열려 있는 터미널" Foreground="#929CA3" VerticalAlignment="Center"/><Button x:Name="RefreshButton" Content="↻" ToolTip="목록 새로고침" HorizontalAlignment="Right" Padding="9,3"/></DockPanel></StackPanel>
+    <StackPanel DockPanel.Dock="Bottom"><TextBlock x:Name="Footer" Text="기존 터미널과 연결" Foreground="#758087" FontSize="11" TextWrapping="Wrap" Margin="7,12"/><Button x:Name="FileBoxButton" Content="파일함" HorizontalContentAlignment="Left"/><Button x:Name="PhoneLinkButton" Content="휴대폰 연동" HorizontalContentAlignment="Left" Margin="4,6,4,4"/></StackPanel>
+    <ListBox x:Name="Tabs" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Hidden"><ListBox.ItemTemplate><DataTemplate><Grid Margin="10,9,6,9" ToolTip="{Binding Name}"><Grid.ColumnDefinitions><ColumnDefinition Width="18"/><ColumnDefinition Width="*"/><ColumnDefinition Width="30"/></Grid.ColumnDefinitions><TextBlock x:Name="DragHandle" Text="⠿" Foreground="#65717A" VerticalAlignment="Center" ToolTip="드래그해서 순서 변경"/><Ellipse x:Name="UnreadDot" Width="8" Height="8" Fill="#5CA8FF" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Collapsed" ToolTip="읽지 않은 답변" AutomationProperties.Name="읽지 않은 답변"/><TextBlock x:Name="TabNameText" Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/><Button x:Name="TabCloseButton" Grid.Column="2" Width="26" Height="26" Margin="4,0,0,0" Padding="0" Background="Transparent" Foreground="#A2ADB5" Focusable="False" ToolTip="탭 닫기" AutomationProperties.Name="{Binding Name, StringFormat={}{0} 탭 닫기}" IsEnabled="{Binding CanClose}" Click="CloseTabClicked"><Path Data="M0,0 L8,8 M8,0 L0,8" Width="8" Height="8" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.2"/></Button></Grid><DataTemplate.Triggers><DataTrigger Binding="{Binding HasUnread}" Value="True"><Setter TargetName="UnreadDot" Property="Visibility" Value="Visible"/><Setter TargetName="DragHandle" Property="Visibility" Value="Collapsed"/><Setter TargetName="TabNameText" Property="FontWeight" Value="SemiBold"/><Setter TargetName="TabNameText" Property="Foreground" Value="#DEECFF"/></DataTrigger></DataTemplate.Triggers></DataTemplate></ListBox.ItemTemplate></ListBox>
+   </DockPanel>
+  </Border>
+  <Grid x:Name="ConversationPane" Grid.Column="1">
+   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+   <Border BorderBrush="#2A2D30" BorderThickness="0,0,0,1" Padding="24,18"><DockPanel><StackPanel DockPanel.Dock="Right" Orientation="Horizontal"><TextBlock x:Name="WeeklyUsage" Text="--%" Foreground="#A8B2BC" FontSize="12" VerticalAlignment="Center" Margin="0,0,12,0" ToolTip="Codex 주간 사용률 확인 중"/><Button x:Name="ConversationButton" Content="대화"/><Button x:Name="TerminalButton" Content="터미널"/><Button x:Name="NativeButton" Content="Windows Terminal 열기"/></StackPanel><TextBlock x:Name="TabTitle" Text="TerminalLink" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,12,0"/></DockPanel></Border>
+   <Border Grid.Row="1" Background="#192322" Padding="20,9" MaxHeight="100" ClipToBounds="True" x:Name="NoticeBar" Visibility="Collapsed"><DockPanel><Button x:Name="RetryButton" Content="다시 확인" DockPanel.Dock="Right" Padding="12,4" VerticalAlignment="Center"/><TextBlock x:Name="Notice" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="72" VerticalAlignment="Center" Foreground="#B8CFCB"/></DockPanel></Border>
+   <Grid Grid.Row="2" Margin="12,0"><ListBox x:Name="Messages" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Hidden" ScrollViewer.CanContentScroll="True" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" VirtualizingPanel.ScrollUnit="Pixel"><ListBox.ItemTemplate><DataTemplate><local:MessageCard Message="{Binding}" Margin="26,12,26,16" MaxWidth="900"/></DataTemplate></ListBox.ItemTemplate></ListBox>
+    <TextBox x:Name="TerminalText" Visibility="Collapsed" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" FontFamily="Cascadia Mono, Consolas" FontSize="13" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Auto" Background="#151719"/>
+    <TextBlock x:Name="EmptyText" Text="열려 있는 Windows Terminal을 확인하고 있어요." Foreground="#88939B" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="440" TextAlignment="Center"/>
+   </Grid>
+   <StackPanel Grid.Row="3" Margin="34,6,34,20" MaxWidth="960">
+    <DockPanel Margin="0,0,0,10"><Button x:Name="RequestButton" Content="요청 보기" DockPanel.Dock="Left" Visibility="Collapsed" Background="#3C3526"/><Button x:Name="LatestButton" Content="최신 ↓" DockPanel.Dock="Right" Padding="12,5" Visibility="Hidden"/><TextBlock x:Name="ActivityText" Foreground="#87939A" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="8,0"/></DockPanel>
+    <StackPanel x:Name="Keys" Orientation="Horizontal" Visibility="Collapsed" Margin="0,0,0,8"/>
+    <Border Background="#232629" BorderBrush="#353B40" BorderThickness="1" CornerRadius="13" Padding="7">
+     <DockPanel LastChildFill="True"><StackPanel DockPanel.Dock="Bottom"><TextBlock x:Name="AttachmentText" Foreground="#73D8CE" FontSize="12" Margin="10,4" Visibility="Collapsed"/><DockPanel Margin="0,3,0,0"><StackPanel DockPanel.Dock="Left" Orientation="Horizontal"><Button x:Name="AttachButton" Content="＋ 첨부" Background="Transparent"/><Button x:Name="RemoveAttachmentButton" Content="－ 첨부삭제" Background="Transparent" IsEnabled="False" ToolTip="선택한 첨부 모두 지우기"/></StackPanel><Button x:Name="SendButton" Content="전송 ↑" Background="#397B74" DockPanel.Dock="Right"/><TextBlock Text="Enter 전송 · Shift+Enter 줄바꿈" FontSize="11" Foreground="#87939A" VerticalAlignment="Center" HorizontalAlignment="Right" TextTrimming="CharacterEllipsis" Margin="5"/></DockPanel></StackPanel><TextBox x:Name="Composer" MinHeight="56" MaxHeight="170" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" FontSize="15" AutomationProperties.Name="메시지 입력"/></DockPanel>
+    </Border>
+   </StackPanel>
+  </Grid>
+  <Grid x:Name="PhoneLinkPane" Grid.Column="1" Visibility="Hidden" Background="#151719">
+   <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+   <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+   <Border x:Name="PhoneHostSlot"/>
+   <ScrollBar x:Name="PhoneVertical" Grid.Column="1" Width="14" Orientation="Vertical" Visibility="Collapsed"/>
+   <ScrollBar x:Name="PhoneHorizontal" Grid.Row="1" Height="14" Orientation="Horizontal" Visibility="Collapsed"/>
+   <StackPanel x:Name="PhoneLinkStatus" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500" Margin="30">
+    <TextBlock Text="휴대폰 연동" FontSize="24" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,0,0,16"/>
+    <TextBlock x:Name="PhoneLinkMessage" Text="연결 프로그램을 확인하고 있어요." Foreground="#A8B2BC" TextWrapping="Wrap" TextAlignment="Center"/>
+    <Button x:Name="PhoneLinkRetry" Content="다시 확인" Margin="0,20,0,0" HorizontalAlignment="Center"/>
+   </StackPanel>
+  </Grid>
+ </Grid>
+ </Grid>
+ </Border>
+</Window>

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <UseWPF>true</UseWPF><UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>TerminalLink-Desktop</AssemblyName><Version>0.1.43</Version>
+    <ApplicationIcon>assets/TerminalLink.ico</ApplicationIcon>
+    <ApplicationManifest>../host/app.manifest</ApplicationManifest>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <StartupObject>TerminalLink.DesktopProgram</StartupObject>
+    <DefineConstants>$(DefineConstants);DESKTOP</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="filebox/**/*.cs;tests/**/*.cs" />
+    <EmbeddedResource Include="assets/TerminalLink.ico" LogicalName="TerminalLink.Desktop.Icon" />
+    <Using Include="System.IO" />
+    <PackageReference Include="SSH.NET" Version="2026.0.0" />
+    <Compile Include="../host/Native.cs;../host/TerminalWindows.cs;../host/ConsoleTitles.cs;../host/TerminalTabLocator.cs;../host/ConversationReader.cs;../host/LocalDaemonFeed.cs;../host/LocalBindingStore.cs;../host/NotificationInput.cs;../host/NotificationTarget.cs;../host/FileUploads.cs;../host/ImageUploads.cs;../host/DisplayText.cs;../host/Protocol.cs;../host/NewTerminal.cs;../host/CloseTerminal.cs;../host/SharedFiles.cs" LinkBase="Connector" />
+  </ItemGroup>
+</Project>

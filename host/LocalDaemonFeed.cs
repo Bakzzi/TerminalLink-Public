@@ -10,6 +10,9 @@ internal static class LocalDaemonFeed {
  internal sealed class Record {
   readonly object sync=new();readonly CodexFeed feed=new();long length=-1;DateTime write;
   internal Conversation? Read(string path){lock(sync){var info=new FileInfo(path);if(info.Length!=length||info.LastWriteTimeUtc!=write){feed.ReadAdded(path);length=info.Length;write=info.LastWriteTimeUtc;}return View();}}
+#if DESKTOP
+  internal bool Changed(string path,Conversation expected){lock(sync){var info=new FileInfo(path);return info.Length!=length||info.LastWriteTimeUtc!=write||!ReferenceEquals(view,expected);}}
+#endif
   internal Conversation? original,view;
   Conversation? View(){var next=feed.Snapshot;if(next!=original){original=next;view=next is null?null:next with{readOnly=true};}return view;}
  }
@@ -17,13 +20,22 @@ internal static class LocalDaemonFeed {
  static readonly object gate=new();static readonly System.Collections.Concurrent.ConcurrentDictionary<string,Record> records=new(StringComparer.OrdinalIgnoreCase);
  static readonly Dictionary<string,string> bindings=new();
  static LocalBindingStore? saved;static LocalBindingStore Saved=>saved??=new(Storage());
+#if DESKTOP
+ internal static string? StorageOverride;
+#endif
  static string Storage(){
+#if DESKTOP
+  if(StorageOverride is string isolated)return isolated;
+#endif
 #if TESTING
   if(Environment.GetEnvironmentVariable("TERMINALLINK_TEST_BINDING_STORE") is string folder&&folder.Length>0)return folder;
 #endif
   return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"TerminalLink","daemon-record-links-v1");
  }
  internal static string Diagnostic="not-started";
+#if DESKTOP
+ internal static bool CatalogReady {get{Catalog snapshot;lock(gate){if(refreshing)return false;snapshot=catalog;}return snapshot.available&&Daemon()?.key==snapshot.daemon;}}
+#endif
  static Catalog catalog=new("",Array.Empty<Candidate>(),false);static bool refreshing;static long nextRefresh;
  internal static string Identity(ConsoleFrame frame,bool includeSsh=false){
   var peers=new List<string>();
@@ -47,10 +59,18 @@ internal static class LocalDaemonFeed {
   if(linkedBefore!=null){
    var linkedCandidate=snapshot.candidates.Single(c=>c.conversation.id==linkedBefore.id);
    var fresh=FreshForFrame(frame,linkedCandidate,c=>ReloadVerified(c,snapshot.daemon));
+#if DESKTOP
+   // The catalog discovers ownership; a known, changed record must not wait for
+   // its next catalog publication. Reuse the same owner check and incremental reader.
+   if(fresh!=null)fresh=DesktopRefresh(fresh,c=>records.TryGetValue(c.path,out var record)&&record.Changed(c.path,c.conversation),c=>ReloadVerified(c,snapshot.daemon));
+#endif
    if(fresh==null)return null;
    if(!ReferenceEquals(fresh,linkedCandidate))snapshot=snapshot with{candidates=snapshot.candidates.Select(c=>ReferenceEquals(c,linkedCandidate)?fresh:c).ToArray()};
   }
   var match=ScreenConversation.Recognizes(frame)?Match(frame,snapshot.candidates):null;
+#if DESKTOP
+  if(match==null&&NativeFieldPrompt.Parse(frame.text)!=null)match=Match(frame,snapshot.candidates);
+#endif
   lock(gate){
    if(match!=null){bindings[identity]=match.id;Saved.Remember(identity,snapshot.daemon,match);return match;}
    var linked=bindings.TryGetValue(identity,out var thread)?snapshot.candidates.Where(c=>c.conversation.id==thread).ToArray():Array.Empty<Candidate>();
@@ -62,6 +82,63 @@ internal static class LocalDaemonFeed {
   }
  }
  // The callback must freshly verify the bound record's owner. No viewport or old-chat fallback.
+#if DESKTOP
+ internal static Candidate? DesktopRefresh(Candidate linked,Func<Candidate,bool> changed,Func<Candidate,Candidate?> reload){
+  try{if(!changed(linked))return linked;var fresh=reload(linked);return fresh?.conversation.id==linked.conversation.id?fresh:null;}catch(IOException){return null;}catch(UnauthorizedAccessException){return null;}
+ }
+ internal static Catalog? DesktopInputCatalog(Catalog current,string thread,Func<Candidate,Candidate?> reload){
+  var targets=current.candidates.Where(c=>c.conversation.id==thread).ToArray();if(targets.Length!=1)return null;
+  var fresh=reload(targets[0]);if(fresh?.conversation.id!=thread)return null;
+  return current with{candidates=current.candidates.Select(c=>ReferenceEquals(c,targets[0])?fresh:c).ToArray()};
+ }
+ internal static Catalog? DesktopInputEvidence(Catalog verified,ConsoleFrame frame,string thread){
+  // Short acknowledgements can occur in several live threads. Use the same
+  // ordered question AND answer evidence as discovery, never the saved binding alone.
+  var match=Match(frame,verified.candidates);
+  if(match==null){
+   var anchors=Anchors(frame);
+   // A verified binding may begin with a short first message. Complete, unique
+   // questions suffice; folded/prefix-only questions still require answer proof.
+   if(anchors.Length>0&&anchors.All(a=>!a.folded&&a.prefixes.Count==0)){
+    var exact=verified.candidates.Where(c=>Compatible(frame,c.conversation)).ToArray();
+    if(exact.Length==1)match=exact[0].conversation;
+   }
+  }
+  if(match?.id!=thread)return null;
+  return verified with{candidates=verified.candidates.Where(c=>ReferenceEquals(c.conversation,match)).ToArray()};
+ }
+ internal static bool DesktopCorroboratesCompleted(ConsoleFrame frame,string thread){
+  // Rebuild the live owner catalog, including competing records, before sending.
+  // A persisted display binding alone never authorizes an anchor-free send.
+  Refresh();Catalog current;lock(gate)current=catalog;
+  return current.available&&Daemon()?.key==current.daemon
+   &&CompletedAnswerEvidence.Match(frame,current.candidates.Select(c=>c.conversation))?.id==thread;
+ }
+ internal static Catalog DesktopCaptureStart(){Refresh();lock(gate){if(!catalog.available||Daemon()?.key!=catalog.daemon)throw new IOException("새 대화 연결을 확인하지 못했습니다. 잠시 후 다시 시도하세요.");return catalog;}}
+ internal static Conversation? DesktopBindStart(Catalog before,ConsoleFrame frame,string text){
+  string identity=Identity(frame);if(identity.Length==0||ShellActive(frame)||Anchors(frame).Length==0)return null;
+  Refresh();Catalog current;lock(gate)current=catalog;
+  if(!current.available||current.daemon!=before.daemon||Daemon()?.key!=current.daemon)return null;
+  var original=DesktopMatchStart(before,current,frame,text);if(original==null)return null;
+  var fresh=ReloadVerified(original,current.daemon);if(fresh==null||!Compatible(frame,fresh.conversation))return null;
+  lock(gate){bindings[identity]=fresh.conversation.id;Saved.Remember(identity,current.daemon,fresh.conversation);}
+  return fresh.conversation;
+ }
+ internal static Candidate? DesktopMatchStart(Catalog before,Catalog current,ConsoleFrame frame,string text){
+  if(Anchors(frame).Length==0)return null;
+  var matches=DesktopStartCandidates(before,current,text).Where(c=>Compatible(frame,c.conversation)).ToArray();
+  return matches.Length==1?matches[0]:null;
+ }
+ internal static Candidate[] DesktopStartCandidates(Catalog before,Catalog current,string text){
+  if(!before.available||!current.available||before.daemon!=current.daemon)return Array.Empty<Candidate>();
+  return current.candidates.Where(c=>{
+   var previous=before.candidates.Where(p=>p.conversation.id==c.conversation.id).ToArray();
+   if(previous.Length>1||previous.Any(p=>p.conversation.messages.Length>0||p.conversation.requests?.Length>0))return false;
+   var users=c.conversation.messages.Where(m=>m.role=="user").ToArray();
+   return users.Length==1&&DesktopStartInput.Normalize(users[0].text)==DesktopStartInput.Normalize(text);
+  }).ToArray();
+ }
+#endif
  internal static Candidate? FreshForFrame(ConsoleFrame frame,Candidate linked,Func<Candidate,Candidate?> reload){
   if(Compatible(frame,linked.conversation))return linked;
   var fresh=reload(linked);
@@ -80,9 +157,21 @@ internal static class LocalDaemonFeed {
  // A clipped current question may have no final answer yet; the previously verified TUI binding is retained.
  internal static bool CorroboratesPhoto(ConsoleFrame frame,string thread){
   var anchors=Anchors(frame);
+#if DESKTOP
+  if(anchors.Length==0)return DesktopCorroboratesCompleted(frame,thread);
+#endif
   if(anchors.Length==0)return false;
   Catalog current;lock(gate)current=catalog;
   if(!current.available||Daemon()?.key!=current.daemon)return false;
+#if DESKTOP
+  // Read(frame) can already see an appended question while the discovery catalog
+  // still has the preceding snapshot. Verify the same owned file before matching;
+  // do not turn that catalog lag into a failed first submit or retry any input.
+  var verified=DesktopInputCatalog(current,thread,c=>ReloadVerified(c,current.daemon));
+  if(verified==null)return false;
+  var evidence=DesktopInputEvidence(verified,frame,thread);
+  if(evidence==null)return false;current=evidence;
+#endif
   var matches=current.candidates.Where(c=>Compatible(frame,c.conversation)).ToArray();
   return matches.Length==1&&matches[0].conversation.id==thread;
  }
@@ -98,6 +187,9 @@ internal static class LocalDaemonFeed {
  // Exclude an active request editor, including selected options and an unsent answer.
  // Its transcript prefix remains evidence; the editor alone cannot create a binding.
  static string Transcript(string text){
+#if DESKTOP
+  text=NativeFieldPrompt.Transcript(text);
+#endif
   if(NotificationInput.Parse(text)==null)return text;
   var headers=Regex.Matches(text,@"(?m)^\s*(?:(?:•\s*)?Queued follow-up inputs|Question\s+\d+/\d+[^\n]*)\s*$");
   return headers.Count==0?text:text[..headers[^1].Index];
@@ -149,6 +241,12 @@ internal static class LocalDaemonFeed {
  static bool Accepts(Anchor a,string user,out bool clipped){clipped=false;if(a.exact.Contains(user))return true;clipped=a.prefixes.Any(p=>user.StartsWith(p,StringComparison.Ordinal));return clipped;}
  static string Visible(string value)=>Normal(Regex.Replace(value,@"[*`_]",""));
  static bool FollowingAnswer(ConsoleFrame frame,Conversation candidate,int userIndex,bool strong=false){
+#if DESKTOP
+  // The selected option in an open request also starts with '›'. It is an
+  // editor, not a submitted question; use the same transcript boundary as anchors.
+  frame=frame with{text=Transcript(frame.text)};
+  if(TurnAnswerEvidence.Matches(frame,candidate,userIndex))return true;
+#endif
   string displayed=ScreenConversation.Extract(frame).LastOrDefault(m=>m.role=="assistant")?.text??"";
   string first=Visible(displayed.Split('\n').FirstOrDefault()??"");
   var lines=frame.text.Replace("\r","").Split('\n');int prompt=Array.FindLastIndex(lines,l=>l.StartsWith("› ")&&!l.StartsWith("› Ask Codex",StringComparison.Ordinal)&&!l.StartsWith("› Ask a follow-up",StringComparison.Ordinal));
@@ -161,6 +259,11 @@ internal static class LocalDaemonFeed {
   for(int i=userIndex+1;i<candidate.messages.Length&&candidate.messages[i].role!="user";i++){
    var message=candidate.messages[i];if(message.role!="assistant"||message.phase is not ("final" or "final_answer" or "commentary"))continue;
    string original=Visible(message.text);
+#if DESKTOP
+   // The TUI renders [label](destination) as label. Compare that representation
+   // without changing records, ownership, ambiguity checks or proof strength.
+   original=Visible(DesktopEvidenceText.RenderInlineLinks(message.text));
+#endif
    if(message.phase!="commentary"&&!strong&&first.Length>=24&&original.StartsWith(first,StringComparison.Ordinal))return true;
    int at=0,hits=0,total=0;foreach(string part in prose){int found=original.IndexOf(part,at,StringComparison.Ordinal);if(found<0)continue;hits++;total+=part.Length;at=found+part.Length;}
    // Evidence strength must not depend on terminal width: a single unwrapped
@@ -175,6 +278,9 @@ internal static class LocalDaemonFeed {
   return at==anchors.Length;
  }
  internal static Conversation? Match(ConsoleFrame frame,IEnumerable<Candidate> candidates){
+#if DESKTOP
+  if(Anchors(frame).Length==0)return CompletedAnswerEvidence.Match(frame,candidates.Select(c=>c.conversation));
+#endif
   var anchors=Anchors(frame);if(anchors.Length==0)return null;
   var matched=new List<Conversation>();
   foreach(var candidate in candidates){
@@ -182,6 +288,12 @@ internal static class LocalDaemonFeed {
    for(int i=0;i<candidate.conversation.messages.Length;i++){
     var message=candidate.conversation.messages[i];if(message.role!="user"||at>=anchors.Length)continue;
     string? user=UserForms(message.text).FirstOrDefault(form=>Accepts(anchors[at],form,out _));if(user!=null&&Accepts(anchors[at],user,out bool partial)){hits.Add(user);clipped|=partial;folded|=anchors[at].folded;if(partial||anchors[at].folded){bool proved=FollowingAnswer(frame with{text=anchors[at].visible},candidate.conversation,i,anchors[at].folded);corroborated&=proved;if(!proved)lastUncorroborated=i;}else if(user.Length>=20)lastIndependent=i;last=i;at++;}
+#if DESKTOP
+    // A complete short follow-up plus substantial ordered answer evidence can
+    // independently identify this turn after an older clipped prompt's answer
+    // has scrolled away. Keep every anchor, owner and ambiguity check intact.
+    if(last==i&&!anchors[at-1].folded&&anchors[at-1].exact.Contains(user!)&&FollowingAnswer(frame with{text=anchors[at-1].visible},candidate.conversation,i,true))lastIndependent=i;
+#endif
    }
    // An older pinned prefix may outlive its answer on screen. A later complete,
    // distinctive question independently identifies the record, while every older

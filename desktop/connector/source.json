@@ -1,0 +1,65 @@
+{
+  "connectorCommit": "f9329eff47f61c40967be0cdbb6ebadf4670da77",
+  "files": [
+    {
+      "source": "host/RemoteCodexFeed.cs",
+      "path": "desktop/connector/RemoteCodexFeed.cs",
+      "sha256": "e20ceadc045b5b51019cd379d4ee24ba8c6a414cb213b50af8dd1da9bde0152a",
+      "sourceCommit": "ea0841fdf5b454719db5796ebf03c8dd51a46921"
+    },
+    {
+      "source": "tests/release-fixtures/remote-record/remote_record_test.py",
+      "path": "desktop/tests/remote-record/remote_record_test.py",
+      "sha256": "4b9e63976981690d5295f7a2309c377b568658737d453924d30450676f23e084",
+      "sourceCommit": "ea0841fdf5b454719db5796ebf03c8dd51a46921"
+    },
+    {
+      "path": "desktop/connector/CodexFeed.cs",
+      "sha256": "1007127bef3a5f3a7b67a8a462d26ea6aff08ad89898e6d1e56996d8179785b6",
+      "source": "host/CodexFeed.cs",
+      "sourceCommit": "b72c9b8f0010952b53841493931899086bd9cc3d"
+    },
+    {
+      "source": "host/RemoteImages.cs",
+      "path": "desktop/connector/RemoteImages.cs",
+      "sha256": "5621cb26cb024c99a0b13283c40d777fd58c7c6a857acd370b18a5472f130f36"
+    },
+    {
+      "source": "host/ImageInput.cs",
+      "path": "desktop/connector/ImageInput.cs",
+      "sha256": "74db560abd466746e15be289cd499f85cc6fc6717c291a2024d8a981d2f88221"
+    },
+    {
+      "source": "host/AttachmentTransferChecks.cs",
+      "path": "desktop/connector/AttachmentTransferChecks.cs",
+      "sha256": "377125fd373e209ed1c4551d36dd93d5e4cca83c188cb51f7827a5f3fdcadc55"
+    },
+    {
+      "source": "host/NativeComposer.cs",
+      "path": "desktop/connector/NativeComposer.cs",
+      "sha256": "21849a2f751667b42f39240d89e219ac0929a39501518a9608d4661c517c7264"
+    },
+    {
+      "source": "host/NativeComposerChecks.cs",
+      "path": "desktop/connector/NativeComposerChecks.cs",
+      "sha256": "d0f3b2d88f6241c9704ac217cef9e25724c0d3957cec86a9add2d5602145abe0"
+    },
+    {
+      "source": "host/ConsoleBridge.cs",
+      "path": "desktop/connector/ConsoleBridge.cs",
+      "sha256": "91f9c64011ed80353fb66b0d75dcd577181ef35095317a48290ba5e10a7c963a",
+      "upstreamSha256": "e278efd1756b8c553cc247de4db60829f46817890b1dae1ac34555792090c97f",
+      "desktopPatch": "0.1.37: explicit SSH ordinary-message paste using attached-console process detection; InputWritten is not Codex acceptance. Main connector unchanged."
+    },
+    {
+      "source": "host/OrderedNativeInput.cs",
+      "path": "desktop/connector/OrderedNativeInput.cs",
+      "sha256": "3a8309c7bb21726344c8a1c505a443895b4ccbabdec8a0aa5abb62aeced32359"
+    },
+    {
+      "source": "host/LocalImageTarget.cs",
+      "path": "desktop/connector/LocalImageTarget.cs",
+      "sha256": "f3515fc7a37d34557ce63cc62e69e9db41ad1024d5cf2812773c57e7b26b56c5"
+    }
+  ]
+}

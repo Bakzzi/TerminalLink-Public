@@ -15,6 +15,9 @@ internal static class NotificationInput {
  internal static bool Collapsed(string text)=>OpenRequestKey(text)!=null;
  static string Reflow(string s)=>Regex.Replace(s.Trim(),@"\s+"," ");
  internal static Prompt? Parse(string text,string expectedQuestion=""){
+#if DESKTOP
+  if(NativeFieldPrompt.Parse(text) is {} field)return field;
+#endif
   string tail=text[Math.Max(0,text.Length-16000)..].Replace("\r","");
   var footer=Regex.Match(tail,@"(?im)^\s*enter\s+submit\s+ctrl\s*\+\s*\]\s+skip\s+(?:option\s+\d+/\d+\s+)?(?:(?:alt|⌥)\s*\+\s*↓|shift\s*\+\s*→)\s+(?:main prompt|prev question)(?:\s+(?:(?:alt|⌥)\s*\+\s*↑|shift\s*\+\s*←)\s+(?:next question|queued messages))?\s*\z");
   bool followup=footer.Success,question=false;int start=-1;
@@ -61,6 +64,9 @@ internal static class NotificationInput {
   return p;
  }
  internal static void EmptyMain(ConsoleFrame frame){
+#if DESKTOP
+  frame=NativeComposer.Normalize(frame);
+#endif
   if(Parse(frame.text)!=null||Collapsed(frame.text))throw new IOException("답변할 요청이 있습니다. 요청 알림이나 앱에서 답하세요.");
   string[] lines=frame.text.Split('\n');int y=frame.cursorY;
   if(y<0||y>=lines.Length)throw new IOException("입력 상태를 확인할 수 없습니다. 앱에서 확인하세요.");
@@ -76,6 +82,9 @@ internal static class NotificationInput {
   if(!CodexPeers(ConsoleNative.Read(read)).Any(original.Contains))throw new IOException("Codex가 종료되었습니다. 입력을 중단했습니다.");
  }
  static void SameDraft(ConsoleFrame frame,string expected){
+#if DESKTOP
+  frame=NativeComposer.Normalize(frame);
+#endif
   string[] lines=frame.text.Split('\n');int end=Math.Min(frame.cursorY,lines.Length-1),start=end;
   while(start>=0&&!lines[start].TrimStart().StartsWith("›"))start--;
   if(start<0)throw new IOException("입력칸이 바뀌었습니다. 앱에서 확인하세요.");
@@ -99,6 +108,11 @@ internal static class NotificationInput {
  }
  internal static object Execute(IntPtr read,IntPtr write,JsonElement message){
   try{
+#if DESKTOP
+   if(message.Str("kind")=="startMessage")return DesktopStartInput.Execute(()=>ConsoleNative.Read(read),
+    text=>{ConsoleNative.Write(write,JsonSerializer.SerializeToElement(new{op="text",text,literalNewlines=true}));ConsoleNative.SettleInput(write);},
+    ()=>Key(write,"ENTER"),message);
+#endif
    using var target=NotificationTarget.Connect(()=>ConsoleNative.Read(read),message.Str("thread"));
    return ExecuteCore(()=>ConsoleNative.Read(read),target.Current,
     (text)=>{if(target.Remote)ConsoleNative.WriteRemotePaste(write,text);else ConsoleNative.Write(write,JsonSerializer.SerializeToElement(new{op="text",text,literalNewlines=true}));ConsoleNative.SettleInput(write);},
@@ -116,7 +130,13 @@ internal static class NotificationInput {
     long seq=message.GetProperty("sequence").GetInt64();
     if(conversation.messages.LastOrDefault()?.sequence!=seq||conversation.messages.LastOrDefault()?.role!="assistant")throw new IOException("새 대화가 진행되었습니다. 최신 답변을 확인하세요.");
     EmptyMain(frame);if(string.IsNullOrWhiteSpace(text))throw new IOException("답장 내용을 입력하세요.");
-   }else if(kind=="request"){
+   }
+#if DESKTOP
+   else if(kind=="message"){
+    EmptyMain(frame);if(string.IsNullOrWhiteSpace(text))throw new IOException("메시지를 입력하세요.");
+   }
+#endif
+   else if(kind=="request"){
     string requestKey=message.Str("requestKey");
     if(requestKey.Length>0&&!(conversation.requests?.Any(q=>q.id==requestKey)??false))throw new IOException("이미 끝난 요청입니다. 새 요청을 확인하세요.");
     if(OpenRequestKey(frame.text) is string openKey){key(openKey,openKey=="UP");Thread.Sleep(450);}
@@ -150,4 +170,7 @@ internal static class NotificationInput {
    return new{notificationResult=request,ok=true,message="PC로 전송했습니다."};
   }catch(Exception e){return new{notificationResult=request,ok=false,message=e.Message};}
  }
+#if DESKTOP
+ internal static void DesktopSameDraft(ConsoleFrame frame,string expected)=>SameDraft(frame,expected);
+#endif
 }

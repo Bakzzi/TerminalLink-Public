@@ -15,7 +15,15 @@ internal sealed class LocalImageTarget {
    var value=LocalDaemonFeed.Read(frame);
    if(Accepts(value,thread)){
     // Starting a write requires current visible question/answer evidence too, not only a saved link.
-    if(!LocalDaemonFeed.CorroboratesPhoto(frame,thread))throw new IOException("현재 Codex 대화를 확인하지 못했습니다. 터미널의 최신 대화를 확인하세요.");
+    if(!LocalDaemonFeed.CorroboratesPhoto(frame,thread)){
+#if DESKTOP
+     // A redraw/ownership catalog refresh can temporarily remove evidence.
+     // Retry only reads, within the existing deadline; every pass rechecks the
+     // same native process/session and original thread before any input occurs.
+     if(Environment.TickCount64<deadline){Thread.Sleep(100);if(Environment.TickCount64<deadline)continue;}
+#endif
+     throw new IOException("현재 Codex 대화를 확인하지 못했습니다. 터미널의 최신 대화를 확인하세요.");
+    }
     return new(identity,thread);
    }
    Thread.Sleep(100);

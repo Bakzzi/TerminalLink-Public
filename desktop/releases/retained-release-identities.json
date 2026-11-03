@@ -1,0 +1,25 @@
+{
+  "desktop": [
+    {
+      "version": "0.1.43.0",
+      "sourceCommit": "0504431962d5f3a347df97dd9c150a14ffda1ed2",
+      "executableSha256": "AE6CC8ECFB10E7EBFABEFB7F64B341AFEAE40A7294422B16DAF581D41A18CC49",
+      "updateBundleSha256": "0E1B870501662CC96CAD558A2849650FCE75F46F6993640829D4140659367D8B",
+      "validation": "Source boundary, synthetic file box and desktop UI checks passed."
+    },
+    {
+      "version": "0.1.42.0",
+      "sourceCommit": "dd98deb20d758849b2635353059e9c0e7a9e6dfa",
+      "executableSha256": "91698DA738D8FDA699009AC17E9B761EF6A0F738D75BD53013818A849299BD5E",
+      "updateBundleSha256": "E1D385782F3AE43006286B91683C9A35D4D0A2EB7E9F6D2635E576B54EB376EC",
+      "validation": "Source boundary and synthetic desktop checks passed."
+    }
+  ],
+  "sshFileBoxBridge": {
+    "version": "0.1.0",
+    "sourceCommit": "e1fd87f7b1769c8409de3b1672be4ec178ef4a98",
+    "executableSha256": "74613B82B2717B42215B0E7180FD2FB654E4BEDB8374AB262175306CBB322571",
+    "packageSha256": "17D601E078B75366396FF1188EA7ADBCFBBDD2386E4C4B529C832542437B9C8F",
+    "validation": "Synthetic bridge and source boundary checks passed."
+  }
+}

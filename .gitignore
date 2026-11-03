@@ -8,6 +8,7 @@
 !/SECURITY.md
 !/THIRD_PARTY_NOTICES.md
 !/host/
+!/desktop/
 !/android/
 !/tools/
 !/tests/
@@ -47,6 +48,11 @@
 **/*.db
 **/*.sqlite*
 **/attachments/
+
+# Local release reports are not required for building or running Desktop.
+/desktop/releases/*.json
+!/desktop/releases/retained-release-identities.json
+/desktop/release-*.json
 
 # Only reviewed synthetic test files; local captures remain private.
 /tests/**
