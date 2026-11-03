@@ -1,0 +1,1 @@
+package android.text;public class InputType{public static final int TYPE_CLASS_TEXT=1,TYPE_TEXT_FLAG_MULTI_LINE=2,TYPE_TEXT_FLAG_NO_SUGGESTIONS=4;}

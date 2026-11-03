@@ -1,0 +1,1 @@
+package android.widget;public class ScrollView extends android.view.ViewGroup{int y;public ScrollView(Object a){super(a);}public void setFillViewport(boolean b){}public int getScrollY(){return y;}public void scrollTo(int x,int y){this.y=y;}}

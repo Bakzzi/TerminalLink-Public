@@ -1,0 +1,1 @@
+package com.terminallink.remote;import android.app.*;import android.content.*;import org.json.*;class NotificationReplies{void decorate(Notification.Builder b,JSONObject c){b.reply();}static void decorate(Context c,String p,boolean supported,Notification.Builder b,JSONObject route){if(supported)b.reply();}}

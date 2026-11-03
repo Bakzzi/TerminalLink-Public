@@ -1,0 +1,11 @@
+# Native field permission requests
+
+PC connector 0.9.46 and Desktop 0.1.27 recognize the native `Field n/m` permission dialog ending in `enter to submit | esc to cancel`. For example, a browser download permission can offer Allow, Allow for this session, Always allow and Cancel. These are tool permission fields, not asynchronous user questions in the original conversation's request list.
+
+`NativeFieldPrompt` requires a complete footer, a valid current field number, sequential numbered options and exactly one native selection marker. It preserves the requested URL, origin, wrapped descriptions and permission scopes. It returns a selection-only approval using the existing request contract; Android does not need an APK update. Desktop gives a blocking native approval precedence over a previous queued async question and requires the user to explicitly select an option. It never preselects Allow in the popup.
+
+The local original reader recognizes this terminal state without requiring an ordinary composer footer. The existing actual process/owner, original identity and ambiguity checks still apply. Field editor text is excluded from submitted-question matching. Submission revalidates the exact question, origin, field number and choices, moves to the explicitly chosen option and sends Enter once. It does not accept a free-text approval or grant permissions automatically. A stale/changed request rejects submission.
+
+The parser and `NativeFieldChecks` are identical on the isolated Desktop branch and connector branch. Desktop's existing `DESKTOP` adapters preserve the non-Desktop baseline. Validation uses synthetic permission prompts and a read-only inspection of a waiting native prompt; it never approves or downloads a real user request.
+
+The optional (n required unanswered) header suffix is bounded by the total field count and excluded from request identity. Codex 0.162.1 clears a select field's committed flag during arrow navigation, so this counter can appear between the first read and Enter. The request, selected scope and popup remain stable through that transition. Synthetic tests exercise all four choices across the transition and reject a real origin change before Enter. UI tests verify preserved selection and first-click submission. Live inspection is read-only; no actual permission is granted by validation.

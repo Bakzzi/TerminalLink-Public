@@ -1,0 +1,1 @@
+package android.os;import java.util.*;public class Handler{Map<Runnable,Long> pending=new LinkedHashMap<>();public void postDelayed(Runnable r,long delay){pending.put(r,delay);}public void removeCallbacks(Runnable r){pending.remove(r);}public void runShort(){for(Runnable r:new ArrayList<>(pending.keySet()))if(pending.get(r)<=1000){pending.remove(r);r.run();}}}

@@ -1,0 +1,1 @@
+package android.widget;public class Button extends TextView{public Button(Object a){super(a);}public void setContentDescription(String s){}public void setAllCaps(boolean b){}}

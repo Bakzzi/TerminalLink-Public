@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType><TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms><UseWPF>true</UseWPF><EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- PC distribution installs the EXE only; include WPF native imaging libraries in every single-file publish. -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <Version>0.9.60</Version><AssemblyVersion>0.9.60.0</AssemblyVersion><FileVersion>0.9.60.0</FileVersion><AssemblyName>TerminalLink-PC</AssemblyName><ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup><Using Include="System.IO" /></ItemGroup>
+  <ItemGroup><PackageReference Include="SSH.NET" Version="2026.0.0" /><PackageReference Include="QRCoder" Version="1.6.0" /></ItemGroup>
+<PropertyGroup Condition="'$(TestHooks)'=='true'"><DefineConstants>$(DefineConstants);TESTING</DefineConstants></PropertyGroup>
+<ItemGroup Condition="'$(TestHooks)'!='true'"><Compile Remove="SelfTest.cs" /></ItemGroup></Project>

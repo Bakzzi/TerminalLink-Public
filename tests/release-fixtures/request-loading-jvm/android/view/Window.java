@@ -1,0 +1,1 @@
+package android.view;public class Window{public static final int FEATURE_NO_TITLE=0;public void setBackgroundDrawable(Object o){}public void addFlags(int n){}public void setDimAmount(float f){}public void setSoftInputMode(int n){}public void setDecorFitsSystemWindows(boolean b){}public void setLayout(int a,int b){}}

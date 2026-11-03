@@ -1,0 +1,17 @@
+# TerminalLink engineering rules
+
+- Preserve running Windows Terminal, PowerShell, SSH and Codex sessions. Never terminate or inject test input into user work.
+- Windows Terminal means the tabbed WindowsTerminal.exe host. Launch shells inside that host; do not silently substitute conhost, an embedded terminal, or a Codex desktop forwarding path.
+- Apply behavior across existing and newly created tabs and windows. Do not special-case private titles, process IDs or conversation IDs.
+- Original conversation identity requires actual ownership and unambiguous evidence. Requests, notification replies and attachments retain their original-identity guards. Ordinary composer text instead targets the authenticated selected native console and must not depend on matching history or rereading the pasted text (explicit user direction, 2026-10-16). Preserve the native console lifetime; append without clearing its draft. Request/approval actions retain their dedicated original-target route. Do not replace unreadable original history with visible screen text while claiming a complete conversation.
+- Original messages remain unchanged. Display transformations must not affect identity, storage or request handling.
+- User correction 2026-10-25: ordinary conversation sends and terminal sends use the same ordered native writer. Do not gate ordinary text on a visible empty prompt, cursor position, Codex process discovery or history readback. Authenticate the selected console and preserve its PID/start time. Append like terminal input; never clear an existing draft or automatically repeat text/Enter. This does not change the original-target contract for request decisions, notification replies or attachments.
+- Temporary request read failures preserve an open popup, selection and draft; revalidate identity before submission. Completion must be confirmed by the same original record.
+- User correction 2026-10-26: transient conversation read/connection failures keep the already displayed conversation, tables, scroll and composer draft. Show a separate error/retry notice beside the composer. Retained display content is not new ownership or input authority; clear it for a confirmed new conversation or changed native tab/PC, not an unavailable read.
+- Keep per-user secrets outside source. Never commit pairing QR codes, keystores, service accounts, conversation dumps, local paths or private regression captures.
+- Before changes choose the smallest sufficient validation and stop rule. Use synthetic fixtures and isolated loopback identities; no emulator or live-terminal tests by default.
+- `tools/test.ps1` covers portable parser, request/notification logic and loopback TLS. Build both applications for shared transport changes. Report physical-device checks separately.
+- Build scripts create artifacts only. Installation, production process replacement and publication are separate actions; do not terminate all matching process names.
+- For an authorized release, after scoped validation and commit/push, publish Windows updates with `tools/publish-pc-update.ps1` and Android with `tools/publish-android-update.ps1`. Automatic-update-capable clients apply only when idle. Follow `docs/AUTOMATIC-UPDATES.md`; bootstrap installs use the existing normal-close procedure and preserve terminal sessions.
+- New dependencies must have pinned versions, source provenance and license notices. Generated output stays under ignored build/dist/signing directories.
+

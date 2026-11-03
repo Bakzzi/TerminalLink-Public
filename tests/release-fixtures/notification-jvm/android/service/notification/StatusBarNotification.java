@@ -1,0 +1,1 @@
+package android.service.notification;import android.app.*;public class StatusBarNotification{public final String tag;public final int id;public final Notification n;public StatusBarNotification(String t,int i,Notification v){tag=t;id=i;n=v;}public int getId(){return id;}public String getTag(){return tag;}public Notification getNotification(){return n;}}

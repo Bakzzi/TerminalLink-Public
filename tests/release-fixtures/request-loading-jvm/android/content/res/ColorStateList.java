@@ -1,0 +1,1 @@
+package android.content.res;public class ColorStateList{public static Object valueOf(int n){return new Object();}}

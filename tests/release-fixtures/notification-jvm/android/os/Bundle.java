@@ -1,0 +1,1 @@
+package android.os;import java.util.*;public class Bundle extends HashMap<String,Object>{public String getString(String k){return (String)get(k);}}

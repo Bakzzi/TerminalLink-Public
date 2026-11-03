@@ -1,0 +1,1 @@
+package android.widget;public class HorizontalScrollView extends ScrollView{public HorizontalScrollView(Object a){super(a);}public void setHorizontalScrollBarEnabled(boolean b){}}

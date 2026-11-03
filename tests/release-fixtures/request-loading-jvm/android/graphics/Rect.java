@@ -1,0 +1,1 @@
+package android.graphics;public class Rect{public int width(){return 400;}}

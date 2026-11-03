@@ -1,0 +1,34 @@
+{
+  "connector": [
+    {
+      "version": "0.9.60.0",
+      "sourceCommit": "b64b064938e0c1aa4ab864a2bca22004476b3c3c",
+      "executableSha256": "65573BD8EA13A99C8DABFF174332997063D012BA872FEDC8E7E506B295DF437C",
+      "updateBundleSha256": "B844B416C267F726E604E413CD59A96CB0497464CE098D8AB4CECE57B62CB36E",
+      "validation": "Synthetic request lifecycle, authenticated loopback and compatibility checks passed."
+    },
+    {
+      "version": "0.9.59.0",
+      "sourceCommit": "d8a178be4d2f0015a159fc6831b1751f5347343d",
+      "executableSha256": "63AC845E41CC92774BC0EC91FC758F126CCF6FD7101244130127C38C0E7E4F3F",
+      "updateBundleSha256": "85B8E123B9CE4D5AD808605E4BE9B94CA1E61D225C39B66B2AB02ACD18D5CB54",
+      "validation": "Synthetic IPC shutdown and production build passed."
+    }
+  ],
+  "android": [
+    {
+      "version": "0.9.54",
+      "versionCode": 102,
+      "sourceCommit": "20f42a9047c5b1179c2928b04e7e1989241234c1",
+      "apkSha256": "70E090E3C32DE1B5A8A7F23F9CC27E897D5A830C6CB1FF8743325204B4F13990",
+      "validation": "Synthetic mobile, release signing and integration checks passed."
+    },
+    {
+      "version": "0.9.53",
+      "versionCode": 101,
+      "sourceCommit": "2dcbe721c8121e66a5086af32dc6ba632867352c",
+      "apkSha256": "8FB48002266AB68F25BB393E5C34559B88C38A13B3DEC1263D5014FDF3841FB3",
+      "validation": "Synthetic mobile and authenticated loopback checks passed."
+    }
+  ]
+}

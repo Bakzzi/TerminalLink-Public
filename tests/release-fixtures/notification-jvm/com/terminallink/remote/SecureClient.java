@@ -1,0 +1,1 @@
+package com.terminallink.remote;class SecureClient{static String hex(byte[] b){StringBuilder s=new StringBuilder();for(byte v:b)s.append(String.format("%02X",v));return s.toString();}}
