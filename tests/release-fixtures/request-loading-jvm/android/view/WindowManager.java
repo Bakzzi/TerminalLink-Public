@@ -1,0 +1,1 @@
+package android.view;public class WindowManager{public Metrics getCurrentWindowMetrics(){return new Metrics();}public static class Metrics{public android.graphics.Rect getBounds(){return new android.graphics.Rect();}}public static class LayoutParams{public static final int FLAG_DIM_BEHIND=1,SOFT_INPUT_ADJUST_RESIZE=2,SOFT_INPUT_STATE_ALWAYS_HIDDEN=4;}}

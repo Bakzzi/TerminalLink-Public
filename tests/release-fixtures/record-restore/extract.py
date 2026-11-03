@@ -1,0 +1,7 @@
+from pathlib import Path
+import sys
+r=Path(sys.argv[1]);out=Path(sys.argv[2]);out.mkdir(parents=True,exist_ok=True)
+s=(r/"android/src/com/terminallink/remote/LinkService.java").read_text(encoding="utf-8-sig")
+def part(a,b):return s[s.index(a):s.index(b,s.index(a))]
+body=part(" void observe(String id"," void updateSummary()")+part(" String requestIdentity("," void observeRequest(")+part(" void postRequest("," void save(")
+(out/"LinkService.java").write_text('package com.terminallink.remote;import android.app.*;import android.content.*;import org.json.*;import java.util.*;\nfinal class LinkService extends Context {\n static LinkService current;static final int ANSWER_ID=7002,SUMMARY_ID=7003,REQUEST_ID=7004,REQUEST_SUMMARY_ID=7005;static final String ANSWER_CHANNEL="answers",REQUEST_CHANNEL="requests";\n String pin="fixture-pc";SharedPreferences state=getSharedPreferences("reply-state",0),prefs=getSharedPreferences("connection",0);ReplyCursor cursor=new ReplyCursor("{}");final Map<String,JSONObject> conversations=new LinkedHashMap<>();MainActivity viewer;NotificationReplies replies=new NotificationReplies();RequestTracker requests=new RequestTracker("{}");Map<String,String> requestDetails=new HashMap<>();\n int icon(){return 1;}PendingIntent open(String id,String key){return new PendingIntent();}void save(){}void updateSummary(){}void updateSummaryFor(int id,String key,Notification n){}void clearRequest(String id){requests.remove(id);nm.cancel(RequestTracker.digest(id),REQUEST_ID);}\n'+body+"}",encoding="utf8")

@@ -1,0 +1,1 @@
+package android.graphics.drawable;public class GradientDrawable{public void setColor(int n){}public void setCornerRadius(int n){}}

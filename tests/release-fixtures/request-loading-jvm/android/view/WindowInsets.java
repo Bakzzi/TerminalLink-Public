@@ -1,0 +1,1 @@
+package android.view;public class WindowInsets{public android.graphics.Insets getInsets(int n){return new android.graphics.Insets();}public static class Type{public static int systemBars(){return 0;}public static int ime(){return 0;}}}

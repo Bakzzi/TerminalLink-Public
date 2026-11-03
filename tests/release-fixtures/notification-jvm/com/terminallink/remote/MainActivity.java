@@ -1,0 +1,1 @@
+package com.terminallink.remote;import org.json.*;class MainActivity{String selected="";boolean viewing=false;boolean viewingSession(String id){return viewing&&selected.equals(id);}static JSONObject obj(Object... a){JSONObject j=new JSONObject();try{for(int i=0;i<a.length;i+=2)j.put((String)a[i],a[i+1]);}catch(Exception e){throw new RuntimeException(e);}return j;}}

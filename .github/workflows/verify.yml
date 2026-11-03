@@ -1,0 +1,47 @@
+name: Clean source verification
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows-android:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: source checkout
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          path: source checkout
+          persist-credentials: false
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - name: Private material scan
+        run: python tools/check-publication.py --history
+      - name: Isolated PC and Java regression checks
+        run: ./tools/test.ps1
+      - name: Production PC build
+        run: ./tools/build-pc.ps1
+      - name: Android SDK components
+        run: |
+          if (!$env:ANDROID_HOME) { $env:ANDROID_HOME=$env:ANDROID_SDK_ROOT }
+          if (!$env:ANDROID_HOME) { throw 'Android SDK is missing on this runner' }
+          & "$env:ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager.bat" 'platforms;android-36' 'build-tools;36.1.0'
+          if ($LASTEXITCODE -ne 0) { throw 'SDK setup failed' }
+      - name: Credential-free Android build
+        run: |
+          if (Test-Path android/google-services.json) { throw 'Unexpected personal Firebase configuration' }
+          ./tools/build-android.ps1
+      # Signing material, runtime identity and APKs are deliberately not uploaded by CI.

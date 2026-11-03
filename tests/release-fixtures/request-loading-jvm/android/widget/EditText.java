@@ -1,0 +1,1 @@
+package android.widget;public class EditText extends TextView{public EditText(Object a){super(a);}public void setSingleLine(boolean b){}public void setInputType(int n){}public void setHint(String s){}public void setError(String s){}}

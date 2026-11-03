@@ -1,0 +1,41 @@
+plugins { id 'com.android.application' version '8.13.0'; id 'com.google.gms.google-services' version '4.5.0' apply false }
+
+def useFirebase = providers.gradleProperty('enableFirebase').orElse('false').get().toBoolean()
+if (useFirebase) {
+ if (!file('google-services.json').isFile()) throw new GradleException('Firebase enabled: add your own android/google-services.json first.')
+ apply plugin: 'com.google.gms.google-services'
+}
+def manifestXml = new groovy.xml.XmlSlurper(false, false).parse(file('AndroidManifest.xml'))
+android {
+ namespace 'com.terminallink.remote'
+ compileSdk 36
+ buildToolsVersion '36.1.0'
+ defaultConfig {
+  applicationId 'com.terminallink.remote'
+  minSdk 30
+  targetSdk 35
+  versionCode manifestXml.'@android:versionCode'.text().toInteger()
+  versionName manifestXml.'@android:versionName'.text()
+ }
+ buildFeatures { buildConfig true }
+ sourceSets { main { manifest.srcFile 'AndroidManifest.xml'; java.srcDirs = ['src']; res.srcDirs = ['res'] } }
+ compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
+ buildTypes { release { minifyEnabled false } }
+}
+layout.buildDirectory = file('gradle-build')
+dependencies {
+ implementation 'com.google.zxing:core:3.5.3'
+ implementation 'com.google.firebase:firebase-messaging:25.1.3'
+}
+
+android.sourceSets.main.assets.srcDirs += ['../docs/licenses']
+android.sourceSets.main.assets.srcDirs += ['../docs/package-notices']
+tasks.register('publicationDependencies') {
+ doLast {
+  def items = configurations.releaseRuntimeClasspath.resolvedConfiguration.resolvedArtifacts.collect {
+   [coordinate: "${it.moduleVersion.id.group}:${it.name}:${it.moduleVersion.id.version}", path: it.file.absolutePath]
+  }.sort { it.coordinate }
+  def out = file('build/resolved-artifacts.json'); out.parentFile.mkdirs()
+  out.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(items))
+ }
+}

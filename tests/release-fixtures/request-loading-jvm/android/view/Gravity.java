@@ -1,0 +1,1 @@
+package android.view;public class Gravity{public static final int CENTER=0,START=1,CENTER_VERTICAL=2;}
